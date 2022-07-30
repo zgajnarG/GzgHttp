@@ -165,44 +165,52 @@ public class HttpGzgClient : IDisposable
     #region Gestion d'envoie de requêtes
 
     #region Partie client basique
-    public HttpResponseMessage Get()
+    public HttpGzgResponse<String> Get()
     {
-        return this.Send(HttpGzgMethods.GET);
+        using var response = this.Send(HttpGzgMethods.GET);
+        return GetHttpGzgResponse(response);
     }
-    public async Task<HttpResponseMessage> GetAsync()
+    public async Task<HttpGzgResponse<String>> GetAsync()
     {
-        return await this.SendAsync(HttpGzgMethods.GET);
-    }
-
-    public HttpResponseMessage Post(object body, HttpGzgContentTypes content)
-    {
-        return this.Send(HttpGzgMethods.POST, body, content);
+        using var response = await this.SendAsync(HttpGzgMethods.GET);
+        return await GetHttpGzgResponseAsync(response);
     }
 
-    public async Task<HttpResponseMessage> PostAsync(object body, HttpGzgContentTypes content)
+    public HttpGzgResponse<String> Post(object body, HttpGzgContentTypes content)
     {
-        return await this.SendAsync(HttpGzgMethods.POST, body, content);
+        using var response =  this.Send(HttpGzgMethods.POST, body, content);
+        return GetHttpGzgResponse(response);
+    }
+
+    public async Task<HttpGzgResponse<String>> PostAsync(object body, HttpGzgContentTypes content)
+    {
+        using var response = await this.SendAsync(HttpGzgMethods.POST, body, content);
+        return await GetHttpGzgResponseAsync(response);
     }
 
     
 
-    public HttpResponseMessage Put(object body, HttpGzgContentTypes content)
+    public HttpGzgResponse<String> Put(object body, HttpGzgContentTypes content)
     {
-        return this.Send(HttpGzgMethods.PUT, body, content);
+        using var response = this.Send(HttpGzgMethods.PUT, body, content);
+        return GetHttpGzgResponse(response);
     }
 
-    public async Task<HttpResponseMessage> PutAsync(object body, HttpGzgContentTypes content)
+    public async Task<HttpGzgResponse<String>> PutAsync(object body, HttpGzgContentTypes content)
     {
-        return await this.SendAsync(HttpGzgMethods.PUT, body, content);
+        using var response = await this.SendAsync(HttpGzgMethods.PUT, body, content);
+        return await GetHttpGzgResponseAsync(response);
     }
-    public HttpResponseMessage Patch(object body, HttpGzgContentTypes content)
+    public HttpGzgResponse<String> Patch(object body, HttpGzgContentTypes content)
     {
-        return this.Send(HttpGzgMethods.PATCH, body, content);
+        using var response = this.Send(HttpGzgMethods.PATCH, body, content);
+        return GetHttpGzgResponse(response);
     }
 
-    public async Task<HttpResponseMessage> PatchAsync(object body, HttpGzgContentTypes content)
+    public async Task<HttpGzgResponse<String>> PatchAsync(object body, HttpGzgContentTypes content)
     {
-        return await this.SendAsync(HttpGzgMethods.PATCH, body, content);
+        using var response = await this.SendAsync(HttpGzgMethods.PATCH, body, content);
+        return await GetHttpGzgResponseAsync(response);
     }
 
     public HttpResponseMessage Send(HttpGzgMethods method, object? body = null, HttpGzgContentTypes? content = null)
@@ -230,107 +238,177 @@ public class HttpGzgClient : IDisposable
     }
 
 
-    public HttpResponseMessage Delete()
+    public HttpGzgResponse<String> Delete()
     {
-        return this.Send(HttpGzgMethods.DELETE);
+        using var response = this.Send(HttpGzgMethods.DELETE);
+        return GetHttpGzgResponse(response);
     }
 
-    public async Task<HttpResponseMessage> DeleteAsync()
+    public async Task<HttpGzgResponse<String>> DeleteAsync()
     {
-        return await this.SendAsync(HttpGzgMethods.DELETE);
+        using var response = await this.SendAsync(HttpGzgMethods.DELETE);
+        return await GetHttpGzgResponseAsync(response);
     }
 
-    public HttpResponseMessage PostJson(string json)
+    public HttpGzgResponse<String> PostJson(string json)
     {
         using HttpRequestMessage requestMessage = new() { RequestUri = this.fullPathRequest, Method = HttpMethod.Post, Content = new StringContent(json, Encoding.UTF8, "application/json") };
-        return _httpClient.Send(requestMessage);
+        using var response =  _httpClient.Send(requestMessage);
+        return GetHttpGzgResponse(response);
     }
     #endregion
 
     #region Partie custom 
 
 
-    public HttpGzgResponseDisposable<Stream> SendAndGetResponseStream(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null , HttpGzgContentTypes? content = null)
+    public HttpGzgResponseStream SendAndGetResponseStream(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null , HttpGzgContentTypes? content = null )
     {
         using var response = this.Send(method, body, content);
         return GetHttpGzgResponseDisposable(response);
     }
 
 
-    public async Task<HttpGzgResponseDisposable<Stream>> SendAndGetResponseStreamAsync(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null, HttpGzgContentTypes? content = null)
+    public async Task<HttpGzgResponseStream> SendAndGetResponseStreamAsync(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null, HttpGzgContentTypes? content = null)
     {
         using var response = await this.SendAsync(method, body, content);
         return GetHttpGzgResponseDisposable(response);
     }
 
 
-    public HttpGzgResponse<T> SendAndParse<T>(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null, HttpGzgContentTypes? content = null)
+    public HttpGzgResponse<T> SendAndParse<T>(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null, HttpGzgContentTypes? content = null , bool parseResultIfError = false)
     {
         using var response = this.Send(method, body, content);
-        return GetHttpGzgResponseParse<T>(response);
+        return GetHttpGzgResponseParse<T>(response, parseResultIfError);
     }
 
-    public async Task<HttpGzgResponse<T>> SendAndParseAsync<T>(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null, HttpGzgContentTypes? content = null)
+    public async Task<HttpGzgResponse<T>> SendAndParseAsync<T>(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null, HttpGzgContentTypes? content = null, bool parseResultIfError = false)
     {
         using var response = await this.SendAsync(method, body, content);
-        return await  GetHttpGzgResponseParseAsync<T>(response);
+        return await  GetHttpGzgResponseParseAsync<T>(response, parseResultIfError);
     }
 
 
-    public async Task<HttpGzgResponse<T>> PostJsonAndParseAsync<T>(string json)
+    public async Task<HttpGzgResponse<T>> PostJsonAndParseAsync<T>(string json, bool parseResultIfError = false)
     {
         using HttpResponseMessage response = await _httpClient.PostAsync(this.endpoint, new StringContent(json, Encoding.UTF8, "application/json"));
-        return await GetHttpGzgResponseParseAsync<T>(response);
+        return await GetHttpGzgResponseParseAsync<T>(response, parseResultIfError);
     }
 
-    public HttpGzgResponse<T> PostJsonAndParse<T>(string json)
+    public HttpGzgResponse<T> PostJsonAndParse<T>(string json , bool parparseResultIfError = false)
     {
         using HttpRequestMessage request = new() { RequestUri = this.fullPathRequest, Method = HttpMethod.Get, Content = new StringContent(json, Encoding.UTF8, "application/json") };
         using var response = _httpClient.Send(request);
-        return GetHttpGzgResponseParse<T>(response);
+        return GetHttpGzgResponseParse<T>(response, parparseResultIfError);
     }
 
-    private static HttpGzgResponse<T> GetHttpGzgResponseParse<T>(HttpResponseMessage response)
+    private static HttpGzgResponse<T> GetHttpGzgResponseParse<T>(HttpResponseMessage response , bool parparseResultIfError)
     {
         int statusCode = (int)response.StatusCode;
+        HttpGzgResponse<T> gzgResp;
         if (response.IsSuccessStatusCode && response.Content != null)
         {
-            return new HttpGzgResponse<T>(true, JsonConvert.DeserializeObject<T>(response.Content.ReadAsStringAsync().Result), statusCode);
+            gzgResp = new HttpGzgResponse<T>(true, JsonConvert.DeserializeObject<T>(response.Content.ReadAsStringAsync().Result), statusCode);
         }
         else if (response.Content != null)
         {
-            return new HttpGzgResponse<T>(false, response.Content.ReadAsStringAsync().Result, statusCode);
+            gzgResp = parparseResultIfError ? 
+             new HttpGzgResponse<T>(false, JsonConvert.DeserializeObject<T>(response.Content.ReadAsStringAsync().Result) , "" , statusCode) :
+             new HttpGzgResponse<T>(false, response.Content.ReadAsStringAsync().Result, statusCode);
+
 
         }
-        return new HttpGzgResponse<T>(false, "No content in response", statusCode);
+        else
+        {
+            gzgResp = new HttpGzgResponse<T>(false, "No content in response", statusCode);
+        }
+        gzgResp.Headers = response.Headers.ToDictionary(x => x.Key, x => x.Value);
+        return gzgResp;
     }
 
-    private static async Task<HttpGzgResponse<T>> GetHttpGzgResponseParseAsync<T>(HttpResponseMessage response)
+    private static async Task<HttpGzgResponse<T>> GetHttpGzgResponseParseAsync<T>(HttpResponseMessage response, bool parparseResultIfError)
     {
         int statusCode = (int)response.StatusCode;
+        HttpGzgResponse<T> gzgResp;
+       
         if (response.IsSuccessStatusCode && response.Content != null)
         {
-            return new HttpGzgResponse<T>(true, JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync()), statusCode);
+            gzgResp = new HttpGzgResponse<T>(true, JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync()), statusCode);
         }
         else if (response.Content != null)
         {
-            return new HttpGzgResponse<T>(false, await response.Content.ReadAsStringAsync(), statusCode);
+            gzgResp = parparseResultIfError ?
+            new HttpGzgResponse<T>(false, JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync()), "", statusCode) :
+            new HttpGzgResponse<T>(false, await response.Content.ReadAsStringAsync(), statusCode);
 
         }
-        return new HttpGzgResponse<T>(false, "No content in response", statusCode);
+        else
+        {
+            gzgResp = new HttpGzgResponse<T>(false, "No content in response", statusCode);
+        }
+        gzgResp.Headers = response.Headers.ToDictionary(x => x.Key, x => x.Value);
+        return gzgResp;
     }
 
-    private static HttpGzgResponseDisposable<Stream> GetHttpGzgResponseDisposable(HttpResponseMessage response)
+    private static HttpGzgResponseStream GetHttpGzgResponseDisposable(HttpResponseMessage response)
     {
         int statusCode = (int)response.StatusCode;
+        HttpGzgResponseStream gzgResp;
         if (response.IsSuccessStatusCode)
         {
             MemoryStream ms = new MemoryStream();
             response.Content.ReadAsStream().CopyTo(ms);
-            return new HttpGzgResponseDisposable<Stream>(true, ms, statusCode);
+            gzgResp = new HttpGzgResponseStream(true, ms, statusCode);
         }
-        return new HttpGzgResponseDisposable<Stream>(false, response.Content.ReadAsStringAsync().Result, statusCode);
+        else
+        {
+            gzgResp = new HttpGzgResponseStream(false, response.Content.ReadAsStringAsync().Result, statusCode);
+        }
+        gzgResp.Headers = response.Headers.ToDictionary(x => x.Key, x => x.Value);
+        return gzgResp;
     }
+    
+    private static HttpGzgResponse<String> GetHttpGzgResponse(HttpResponseMessage response)
+    {
+        int statusCode = (int)response.StatusCode;
+        HttpGzgResponse<String> gzgResp;
+
+        if (response.IsSuccessStatusCode)
+        {
+            gzgResp = new HttpGzgResponse<String>(true, responseContent : response.Content == null ? String.Empty :response.Content.ReadAsStringAsync().Result, statusCode);
+        }
+        else if (response.Content != null)
+        {
+            gzgResp =  new HttpGzgResponse<String>(false, errorMessage : response.Content.ReadAsStringAsync().Result, statusCode);
+        }
+        else
+        {
+            gzgResp = new HttpGzgResponse<String>(false, errorMessage: "No content in response", statusCode);
+        }
+        gzgResp.Headers = response.Headers.ToDictionary(x => x.Key, x => x.Value);
+        return gzgResp;
+    }
+
+    private static async Task<HttpGzgResponse<String>> GetHttpGzgResponseAsync(HttpResponseMessage response)
+    {
+        int statusCode = (int)response.StatusCode;
+        HttpGzgResponse<String> gzgResp;
+
+        if (response.IsSuccessStatusCode)
+        {
+            gzgResp = new HttpGzgResponse<String>(true, responseContent: response.Content == null ? String.Empty : await response.Content.ReadAsStringAsync(), statusCode);
+        }
+        else if (response.Content != null)
+        {
+            gzgResp = new HttpGzgResponse<String>(false, errorMessage: await response.Content.ReadAsStringAsync(), statusCode);
+        }
+        else
+        {
+            gzgResp = new HttpGzgResponse<String>(false, errorMessage: "No content in response", statusCode);
+        }
+        gzgResp.Headers = response.Headers.ToDictionary(x => x.Key, x => x.Value);
+        return gzgResp;
+    }
+
     #endregion
     #endregion
 

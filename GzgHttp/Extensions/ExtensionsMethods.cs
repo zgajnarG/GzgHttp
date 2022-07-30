@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel;
+using System.IO;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace GzgHttp.Extensions
@@ -19,16 +21,23 @@ namespace GzgHttp.Extensions
         {
             if (val == HttpGzgContentTypes.JSON || val == HttpGzgContentTypes.XML)
             {
-                string json;
+                string? value;
                 if (content.GetType() == typeof(string) || content.GetType() == typeof(String))
                 {
-                    json = (string)content;
+                    value = (string)content;
+                }
+                else if(val == HttpGzgContentTypes.JSON)
+                {
+                    value = JsonConvert.SerializeObject(content);
                 }
                 else
                 {
-                    json = JsonConvert.SerializeObject(content);
+                    value = content?.ToString();
                 }
-                return new StringContent(json, Encoding.UTF8, "application/json");
+                if (value != null)
+                    return new StringContent(value, Encoding.UTF8, val.ToDescriptionString());
+                else
+                    throw new Exception($"can't parse object to {val.ToDescriptionString()}");
             }
             else if (val == HttpGzgContentTypes.FORM_URLENCODED)
             {
@@ -36,7 +45,11 @@ namespace GzgHttp.Extensions
             }
             else
             {
-                return new StreamContent(content as Stream);
+                Stream contentStream = content as Stream;
+                var streamContent = new StreamContent(contentStream);
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue(val.ToDescriptionString());
+                streamContent.Headers.ContentLength = contentStream.Length;
+                return streamContent;
             }
         }
 
