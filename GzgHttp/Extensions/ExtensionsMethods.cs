@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel;
+using System.IO;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace GzgHttp.Extensions
@@ -43,7 +45,11 @@ namespace GzgHttp.Extensions
             }
             else
             {
-                return new StreamContent(content as Stream);
+                Stream contentStream = content as Stream;
+                var streamContent = new StreamContent(contentStream);
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue(val.ToDescriptionString());
+                streamContent.Headers.ContentLength = contentStream.Length;
+                return streamContent;
             }
         }
 

@@ -22,5 +22,12 @@ public enum HttpGzgContentTypes
     [Description("image/jpeg")]
     JPEG,
     [Description("image/png")]
-    PNG
+    PNG,
+    [Description("application/vnd.openxmlformats-officedocument.wordprocessingml.document")]
+    DOCX,
+    [Description("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    XLSX,
+    [Description("application/vnd.openxmlformats-officedocument.presentationml.presentation")]
+    PPTX
+
 }
