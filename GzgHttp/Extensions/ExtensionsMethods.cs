@@ -19,16 +19,23 @@ namespace GzgHttp.Extensions
         {
             if (val == HttpGzgContentTypes.JSON || val == HttpGzgContentTypes.XML)
             {
-                string json;
+                string? value;
                 if (content.GetType() == typeof(string) || content.GetType() == typeof(String))
                 {
-                    json = (string)content;
+                    value = (string)content;
+                }
+                else if(val == HttpGzgContentTypes.JSON)
+                {
+                    value = JsonConvert.SerializeObject(content);
                 }
                 else
                 {
-                    json = JsonConvert.SerializeObject(content);
+                    value = content?.ToString();
                 }
-                return new StringContent(json, Encoding.UTF8, val.ToDescriptionString());
+                if (value != null)
+                    return new StringContent(value, Encoding.UTF8, val.ToDescriptionString());
+                else
+                    throw new Exception($"can't parse object to {val.ToDescriptionString()}");
             }
             else if (val == HttpGzgContentTypes.FORM_URLENCODED)
             {
