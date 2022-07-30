@@ -10,7 +10,7 @@ public enum HttpGzgContentTypes
     [Description("application/json")]
     JSON,
     [Description("application/octet-stream")]
-    FILE_STREAM,
+    STREAM,
     [Description("application/xml")]
     XML,
     [Description("application/zip")]
