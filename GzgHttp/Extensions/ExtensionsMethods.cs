@@ -28,7 +28,7 @@ namespace GzgHttp.Extensions
                 {
                     json = JsonConvert.SerializeObject(content);
                 }
-                return new StringContent(json, Encoding.UTF8, "application/json");
+                return new StringContent(json, Encoding.UTF8, val.ToDescriptionString());
             }
             else if (val == HttpGzgContentTypes.FORM_URLENCODED)
             {
