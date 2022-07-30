@@ -137,6 +137,8 @@ public class HttpGzgClient : IDisposable
 
 
     #region Gestion d'envoie de requêtes
+
+    #region Partie client basique
     public HttpResponseMessage Get()
     {
         return this.Send(HttpGzgMethods.GET);
@@ -216,28 +218,72 @@ public class HttpGzgClient : IDisposable
         using HttpRequestMessage requestMessage = new() { RequestUri = new Uri(this.endpoint), Method = HttpMethod.Post, Content = new StringContent(json, Encoding.UTF8, "application/json") };
         return _httpClient.Send(requestMessage);
     }
+    #endregion
+
+    #region Partie custom 
 
 
-    public HttpGzgResponseDisposable<Stream> PostAndGetStream(object body, HttpGzgContentTypes content)
+    public HttpGzgResponseDisposable<Stream> SendAndGetResponseStream(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null , HttpGzgContentTypes? content = null)
     {
-        using var responseMessage = this.Send(HttpGzgMethods.POST, body, content);
-        int statusCode = (int)responseMessage.StatusCode;
-        if (responseMessage.IsSuccessStatusCode)
-        {
-            MemoryStream ms = new MemoryStream();
-            responseMessage.Content.ReadAsStream().CopyTo(ms);
-            return new HttpGzgResponseDisposable<Stream>(true, ms, statusCode);
-        }
-        return new HttpGzgResponseDisposable<Stream>(false, responseMessage.Content.ReadAsStringAsync().Result, statusCode);
+        using var response = this.Send(method, body, content);
+        return GetHttpGzgResponseDisposable(response);
     }
 
-    public async Task<HttpGzgResponse<T>> PostJsonAsyncAndParse<T>(string json)
+
+    public async Task<HttpGzgResponseDisposable<Stream>> SendAndGetResponseStreamAsync(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null, HttpGzgContentTypes? content = null)
+    {
+        using var response = await this.SendAsync(method, body, content);
+        return GetHttpGzgResponseDisposable(response);
+    }
+
+
+    public HttpGzgResponse<T> SendAndParse<T>(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null, HttpGzgContentTypes? content = null)
+    {
+        using var response = this.Send(method, body, content);
+        return GetHttpGzgResponseParse<T>(response);
+    }
+
+    public async Task<HttpGzgResponse<T>> SendAndParseAsync<T>(HttpGzgMethods method = HttpGzgMethods.GET, object? body = null, HttpGzgContentTypes? content = null)
+    {
+        using var response = await this.SendAsync(method, body, content);
+        return await  GetHttpGzgResponseParseAsync<T>(response);
+    }
+
+
+    public async Task<HttpGzgResponse<T>> PostJsonAndParseAsync<T>(string json)
     {
         using HttpResponseMessage response = await _httpClient.PostAsync(this.endpoint, new StringContent(json, Encoding.UTF8, "application/json"));
+        return await GetHttpGzgResponseParseAsync<T>(response);
+    }
+
+    public HttpGzgResponse<T> PostJsonAndParse<T>(string json)
+    {
+        using HttpRequestMessage request = new() { RequestUri = new Uri(this.endpoint), Method = HttpMethod.Get, Content = new StringContent(json, Encoding.UTF8, "application/json") };
+        using var response = _httpClient.Send(request);
+        return GetHttpGzgResponseParse<T>(response);
+    }
+
+    private static HttpGzgResponse<T> GetHttpGzgResponseParse<T>(HttpResponseMessage response)
+    {
         int statusCode = (int)response.StatusCode;
         if (response.IsSuccessStatusCode && response.Content != null)
         {
-            return new HttpGzgResponse<T>(true, JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync()) , statusCode);
+            return new HttpGzgResponse<T>(true, JsonConvert.DeserializeObject<T>(response.Content.ReadAsStringAsync().Result), statusCode);
+        }
+        else if (response.Content != null)
+        {
+            return new HttpGzgResponse<T>(false, response.Content.ReadAsStringAsync().Result, statusCode);
+
+        }
+        return new HttpGzgResponse<T>(false, "No content in response", statusCode);
+    }
+
+    private static async Task<HttpGzgResponse<T>> GetHttpGzgResponseParseAsync<T>(HttpResponseMessage response)
+    {
+        int statusCode = (int)response.StatusCode;
+        if (response.IsSuccessStatusCode && response.Content != null)
+        {
+            return new HttpGzgResponse<T>(true, JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync()), statusCode);
         }
         else if (response.Content != null)
         {
@@ -247,45 +293,18 @@ public class HttpGzgClient : IDisposable
         return new HttpGzgResponse<T>(false, "No content in response", statusCode);
     }
 
-    public bool TryPostJsonAndParse<T>(string json, out T value)
+    private static HttpGzgResponseDisposable<Stream> GetHttpGzgResponseDisposable(HttpResponseMessage response)
     {
-        value = default;
-        using HttpRequestMessage request = new() { RequestUri = new Uri(this.endpoint), Method = HttpMethod.Get, Content = new StringContent(json, Encoding.UTF8, "application/json") };
-        using var response = _httpClient.Send(request);
-        if (response.IsSuccessStatusCode )
-        {
-            value = JsonConvert.DeserializeObject<T>(response.Content.ReadAsStringAsync().Result);
-            return true;
-        }
-        return false;
-    }
-
-    public async Task<Stream> GetStreamAsync()
-    {
-        return await this._httpClient.GetStreamAsync(this.endpoint);
-    }
-
-
-
-    public async Task<T> GetAsyncAndParse<T>()
-    {
-        string response = await this._httpClient.GetStringAsync(this.endpoint);
-        return (T)Convert.ChangeType(response, typeof(T));
-    }
-
-    public bool TryGetAndParse<T>(out T parseResult)
-    {
-        parseResult = default;
-        using HttpRequestMessage request = new() { RequestUri = new Uri(this.endpoint), Method = HttpMethod.Get };
-        using var response = this._httpClient.Send(request);
+        int statusCode = (int)response.StatusCode;
         if (response.IsSuccessStatusCode)
         {
-             parseResult = JsonConvert.DeserializeObject<T>(response.Content.ReadAsStringAsync().Result);
-             return true;
+            MemoryStream ms = new MemoryStream();
+            response.Content.ReadAsStream().CopyTo(ms);
+            return new HttpGzgResponseDisposable<Stream>(true, ms, statusCode);
         }
-        return false;
+        return new HttpGzgResponseDisposable<Stream>(false, response.Content.ReadAsStringAsync().Result, statusCode);
     }
-
+    #endregion
     #endregion
 
 
