@@ -8,7 +8,6 @@ public class HttpGzgResponse<T>
     public readonly int StatusCode;
     public Dictionary<string , IEnumerable<string>> Headers;
 
-
     public HttpGzgResponse(bool isSuccess, T responseContent , string errorMessage , int statusCode )
     {
         this.IsSuccess = isSuccess;
@@ -16,7 +15,6 @@ public class HttpGzgResponse<T>
         this.ErrorMessage = errorMessage;
         this.StatusCode = statusCode;
     }
-
     public HttpGzgResponse(bool isSuccess, T responseContent , int statusCode)
     {
         this.IsSuccess = isSuccess;
@@ -31,9 +29,6 @@ public class HttpGzgResponse<T>
         this.ResponseContent = default;
         this.StatusCode = statusCode;
     }
-
-
-
 }
 
 
