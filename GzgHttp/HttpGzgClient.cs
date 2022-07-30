@@ -12,6 +12,19 @@ public class HttpGzgClient : IDisposable
 
     private readonly HttpClient _httpClient;
     private string? endpoint;
+    private string? baseAddress;
+
+    private Uri fullPathRequest
+    {
+        get
+        {
+            string? url= this.baseAddress != null ? baseAddress + this.endpoint : endpoint;
+            if (url != null)
+                return new Uri(url);
+            else 
+                throw new ArgumentNullException("endpoint empty");
+        }
+    }
 
     private bool dispose = false;
 
@@ -39,13 +52,26 @@ public class HttpGzgClient : IDisposable
         this.endpoint = String.Empty;
         this.ClearHeaders();
         this.RemoveAuthorization();
+        this.RemoveBaseAddress();
+
     }
     #endregion
 
 
 
 
-    #region Gestion des headers
+    #region Gestion des headers & httpclient
+
+
+    public HttpGzgClient SetBaseAddress(string baseUri)
+    {
+        this.baseAddress = baseUri ;
+        return this;
+    }
+    public void RemoveBaseAddress()
+    {
+        this.baseAddress = null;
+    }
 
     public HttpGzgClient ClearHeaders()
     {
@@ -181,7 +207,8 @@ public class HttpGzgClient : IDisposable
 
     public HttpResponseMessage Send(HttpGzgMethods method, object? body = null, HttpGzgContentTypes? content = null)
     {
-        using HttpRequestMessage request = new() { RequestUri = new Uri(this.endpoint), Method = method.GetMethod() };
+
+        using HttpRequestMessage request = new() { RequestUri =this.fullPathRequest, Method = method.GetMethod() };
 
         if (content != null && body != null)
         {
@@ -193,7 +220,7 @@ public class HttpGzgClient : IDisposable
 
     public async Task<HttpResponseMessage> SendAsync(HttpGzgMethods method, object? body = null, HttpGzgContentTypes? content = null)
     {
-        using HttpRequestMessage request = new() { RequestUri = new Uri(this.endpoint), Method = method.GetMethod() };
+        using HttpRequestMessage request = new() { RequestUri =this.fullPathRequest, Method = method.GetMethod() };
 
         if (content != null && body != null)
         {
@@ -215,7 +242,7 @@ public class HttpGzgClient : IDisposable
 
     public HttpResponseMessage PostJson(string json)
     {
-        using HttpRequestMessage requestMessage = new() { RequestUri = new Uri(this.endpoint), Method = HttpMethod.Post, Content = new StringContent(json, Encoding.UTF8, "application/json") };
+        using HttpRequestMessage requestMessage = new() { RequestUri = this.fullPathRequest, Method = HttpMethod.Post, Content = new StringContent(json, Encoding.UTF8, "application/json") };
         return _httpClient.Send(requestMessage);
     }
     #endregion
@@ -258,7 +285,7 @@ public class HttpGzgClient : IDisposable
 
     public HttpGzgResponse<T> PostJsonAndParse<T>(string json)
     {
-        using HttpRequestMessage request = new() { RequestUri = new Uri(this.endpoint), Method = HttpMethod.Get, Content = new StringContent(json, Encoding.UTF8, "application/json") };
+        using HttpRequestMessage request = new() { RequestUri = this.fullPathRequest, Method = HttpMethod.Get, Content = new StringContent(json, Encoding.UTF8, "application/json") };
         using var response = _httpClient.Send(request);
         return GetHttpGzgResponseParse<T>(response);
     }
