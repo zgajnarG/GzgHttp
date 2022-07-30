@@ -1,5 +1,6 @@
 ﻿using GzgHttp.Extensions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -10,8 +11,9 @@ public class HttpGzgClient : IDisposable
     #region Initialisation de la classe + getter setter
 
     private readonly HttpClient _httpClient;
+    private string? endpoint;
+
     private bool dispose = false;
-    private string endpoint;
 
     public HttpGzgClient(string endpoint)
     {
@@ -19,28 +21,50 @@ public class HttpGzgClient : IDisposable
         this.endpoint = endpoint;
     }
 
-    public HttpClient GetClient()
+    public HttpGzgClient()
     {
-        return this._httpClient;
+        _httpClient = new HttpClient();
     }
 
-    public void ChangeEndpoint(string endpoint)
+    public HttpGzgClient SetEndpoint(string endpoint)
     {
         this.endpoint = endpoint;
+        return this;
+
     }
 
+
+    public void Clear()
+    {
+        this.endpoint = String.Empty;
+        this.ClearHeaders();
+        this.RemoveAuthorization();
+    }
     #endregion
 
 
 
 
     #region Gestion des headers
+
+    public HttpGzgClient ClearHeaders()
+    {
+        this._httpClient.DefaultRequestHeaders.Clear();
+        return this;
+    }
+    
+    public HttpGzgClient RemoveHeader(string name)
+    {
+        this._httpClient.DefaultRequestHeaders.Remove(name);
+        return this;
+    }
+
     public HttpGzgClient AddHeaders(Dictionary<string, string> headers)
     {
 
         foreach (string headerName in headers.Keys)
         {
-            this._httpClient.DefaultRequestHeaders.Add(headerName, headers[headerName]);
+            this.AddHeader(headerName, headers[headerName]);
         }
 
         return this;
@@ -48,21 +72,47 @@ public class HttpGzgClient : IDisposable
 
     public HttpGzgClient AddHeader(string key, string value)
     {
-        this._httpClient.DefaultRequestHeaders.Add(value, key);
+        if(!_httpClient.DefaultRequestHeaders.TryAddWithoutValidation(key, value))
+        {
+            throw new FormatException($"cant add header : {key}");
+        }
+        return this;
+    }
+
+    public HttpGzgClient Accept(IEnumerable<HttpGzgContentTypes> types)
+    {
+        foreach(var type in types)
+        {
+            this._httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(type.ToDescriptionString()));
+        }
+        return this;
+    }
+
+    public HttpGzgClient Accept(IEnumerable<string> types)
+    {
+        foreach (var type in types)
+        {
+            this._httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(type));
+        }
         return this;
     }
 
     public HttpGzgClient Accept(HttpGzgContentTypes type)
     {
-        this._httpClient.DefaultRequestHeaders.Accept.Clear();
         this._httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(type.ToDescriptionString()));
         return this;
     }
 
     public HttpGzgClient Accept(string type)
     {
-        this._httpClient.DefaultRequestHeaders.Accept.Clear();
+       
         this._httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(type));
+        return this;
+    }
+
+    public HttpGzgClient RemoveAccept()
+    {
+        this._httpClient.DefaultRequestHeaders.Accept.Clear();
         return this;
     }
 
@@ -76,6 +126,13 @@ public class HttpGzgClient : IDisposable
         this._httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return this;
     }
+
+    public HttpGzgClient RemoveAuthorization()
+    {
+        this._httpClient.DefaultRequestHeaders.Authorization = null;
+        return this;
+    }
+
     #endregion
 
 
@@ -98,6 +155,8 @@ public class HttpGzgClient : IDisposable
     {
         return await this.SendAsync(HttpGzgMethods.POST, body, content);
     }
+
+    
 
     public HttpResponseMessage Put(object body, HttpGzgContentTypes content)
     {
@@ -159,20 +218,33 @@ public class HttpGzgClient : IDisposable
     }
 
 
+    public HttpGzgResponseDisposable<Stream> PostAndGetStream(object body, HttpGzgContentTypes content)
+    {
+        using var responseMessage = this.Send(HttpGzgMethods.POST, body, content);
+        int statusCode = (int)responseMessage.StatusCode;
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            MemoryStream ms = new MemoryStream();
+            responseMessage.Content.ReadAsStream().CopyTo(ms);
+            return new HttpGzgResponseDisposable<Stream>(true, ms, statusCode);
+        }
+        return new HttpGzgResponseDisposable<Stream>(false, responseMessage.Content.ReadAsStringAsync().Result, statusCode);
+    }
 
     public async Task<HttpGzgResponse<T>> PostJsonAsyncAndParse<T>(string json)
     {
         using HttpResponseMessage response = await _httpClient.PostAsync(this.endpoint, new StringContent(json, Encoding.UTF8, "application/json"));
+        int statusCode = (int)response.StatusCode;
         if (response.IsSuccessStatusCode && response.Content != null)
         {
-            return new HttpGzgResponse<T>(true, (T)Convert.ChangeType(await response.Content.ReadAsStringAsync(), typeof(T)));
+            return new HttpGzgResponse<T>(true, JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync()) , statusCode);
         }
         else if (response.Content != null)
         {
-            return new HttpGzgResponse<T>(false, await response.Content.ReadAsStringAsync());
+            return new HttpGzgResponse<T>(false, await response.Content.ReadAsStringAsync(), statusCode);
 
         }
-        return new HttpGzgResponse<T>(false, "No content in response");
+        return new HttpGzgResponse<T>(false, "No content in response", statusCode);
     }
 
     public bool TryPostJsonAndParse<T>(string json, out T value)
