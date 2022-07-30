@@ -27,6 +27,7 @@ public class HttpGzgResponseDisposable<T> : HttpGzgResponse<T> , IDisposable whe
                 responseContent.Dispose();
             }
             dispose = true;
+            GC.SuppressFinalize(this);
         }
     }
 }

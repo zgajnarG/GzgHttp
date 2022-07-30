@@ -314,6 +314,7 @@ public class HttpGzgClient : IDisposable
         {
             _httpClient.Dispose();
             dispose = true;
+            GC.SuppressFinalize(this);
         }
     }
 }
