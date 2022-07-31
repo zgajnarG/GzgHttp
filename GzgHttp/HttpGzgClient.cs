@@ -49,9 +49,14 @@ public class HttpGzgClient : IDisposable
         return this;
     }
 
-    public HttpGzgClient ClearHeaders()
+    public HttpGzgClient ClearHeaders(bool clearAuthorization = false)
     {
+        var authorization = this._httpClient.DefaultRequestHeaders.Authorization;
         this._httpClient.DefaultRequestHeaders.Clear();
+        if (!clearAuthorization)
+        {
+            this._httpClient.DefaultRequestHeaders.Authorization = authorization;
+        }
         return this;
     }
     public HttpGzgClient RemoveHeader(string name)
@@ -137,8 +142,7 @@ public class HttpGzgClient : IDisposable
     public void Clear()
     {
         this.endpoint = String.Empty;
-        this.ClearHeaders();
-        this.RemoveAuthorization();
+        this.ClearHeaders(true);
         this.RemoveBaseAddress();
     }
     
