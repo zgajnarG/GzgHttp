@@ -182,7 +182,7 @@ public class HttpGzgClient : IDisposable
     {
         return SendAndParse<T>(HttpGzgMethods.POST, body, content);
     }
-    public HttpGzgResponseStream PostWitStreamResult(object body, HttpGzgContentTypes content)
+    public HttpGzgResponseStream PostWithStreamResult(object body, HttpGzgContentTypes content)
     {
         return SendAndGetResponseStream(HttpGzgMethods.POST, body, content);
     }
@@ -209,7 +209,7 @@ public class HttpGzgClient : IDisposable
     {
         return SendAndParse<T>(HttpGzgMethods.PUT, body, content);
     }
-    public HttpGzgResponseStream PutWitStreamResult(object body, HttpGzgContentTypes content)
+    public HttpGzgResponseStream PutWithStreamResult(object body, HttpGzgContentTypes content)
     {
         return SendAndGetResponseStream(HttpGzgMethods.PUT, body, content);
     }
@@ -236,7 +236,7 @@ public class HttpGzgClient : IDisposable
     {
         return SendAndParse<T>(HttpGzgMethods.PATCH, body, content);
     }
-    public HttpGzgResponseStream PatchWitStreamResult(object body, HttpGzgContentTypes content)
+    public HttpGzgResponseStream PatchWithStreamResult(object body, HttpGzgContentTypes content)
     {
         return SendAndGetResponseStream(HttpGzgMethods.PATCH, body, content);
     }
