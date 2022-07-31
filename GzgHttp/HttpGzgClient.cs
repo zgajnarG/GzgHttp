@@ -151,9 +151,9 @@ public class HttpGzgClient : IDisposable
         using var response = this.Send(HttpGzgMethods.GET);
         return GetHttpGzgResponse(response);
     }
-    public HttpGzgResponse<T> GetWithResult<T>()
+    public HttpGzgResponse<T> GetWithResult<T>(bool parseResultIfError = false)
     {
-        return SendAndParse<T>();
+        return SendAndParse<T>(parseResultIfError : parseResultIfError);
     }
     public HttpGzgResponseStream GetWithStreamResult()
     {
@@ -164,9 +164,9 @@ public class HttpGzgClient : IDisposable
         using var response = await this.SendAsync(HttpGzgMethods.GET);
         return await GetHttpGzgResponseAsync(response);
     }
-    public async Task<HttpGzgResponse<T>> GetWithResultAsync<T>()
+    public async Task<HttpGzgResponse<T>> GetWithResultAsync<T>(bool parseResultIfError = false)
     {
-       return await SendAndParseAsync<T>();
+       return await SendAndParseAsync<T>(parseResultIfError : parseResultIfError);
     }
     public async Task<HttpGzgResponseStream> GetWithStreamResultAsync()
     {
@@ -178,9 +178,9 @@ public class HttpGzgClient : IDisposable
         using var response =  this.Send(HttpGzgMethods.POST, body, content);
         return GetHttpGzgResponse(response);
     }
-    public HttpGzgResponse<T> PostWithResult<T>(object body, HttpGzgContentTypes content)
+    public HttpGzgResponse<T> PostWithResult<T>(object body, HttpGzgContentTypes content , bool parseResultIfError = false)
     {
-        return SendAndParse<T>(HttpGzgMethods.POST, body, content);
+        return SendAndParse<T>(HttpGzgMethods.POST, body, content, parseResultIfError );
     }
     public HttpGzgResponseStream PostWithStreamResult(object body, HttpGzgContentTypes content)
     {
@@ -191,9 +191,9 @@ public class HttpGzgClient : IDisposable
         using var response = await this.SendAsync(HttpGzgMethods.POST, body, content);
         return await GetHttpGzgResponseAsync(response);
     }
-    public async Task<HttpGzgResponse<T>> PostWithResultAsync<T>(object body, HttpGzgContentTypes content)
+    public async Task<HttpGzgResponse<T>> PostWithResultAsync<T>(object body, HttpGzgContentTypes content , bool parseResultIfError = false)
     {
-        return await SendAndParseAsync<T>(HttpGzgMethods.POST , body , content);
+        return await SendAndParseAsync<T>(HttpGzgMethods.POST , body , content , parseResultIfError);
     }
     public async Task<HttpGzgResponseStream> PostWithStreamResultAsync(object body, HttpGzgContentTypes content)
     {
@@ -205,9 +205,9 @@ public class HttpGzgClient : IDisposable
         using var response = this.Send(HttpGzgMethods.PUT, body, content);
         return GetHttpGzgResponse(response );
     }
-    public HttpGzgResponse<T> PutWithResult<T>(object body, HttpGzgContentTypes content)
+    public HttpGzgResponse<T> PutWithResult<T>(object body, HttpGzgContentTypes content, bool parseResultIfError = false)
     {
-        return SendAndParse<T>(HttpGzgMethods.PUT, body, content);
+        return SendAndParse<T>(HttpGzgMethods.PUT, body, content , parseResultIfError );
     }
     public HttpGzgResponseStream PutWithStreamResult(object body, HttpGzgContentTypes content)
     {
@@ -218,9 +218,9 @@ public class HttpGzgClient : IDisposable
         using var response = await this.SendAsync(HttpGzgMethods.PUT, body, content);
         return await GetHttpGzgResponseAsync(response);
     }
-    public async Task<HttpGzgResponse<T>> PutWithResultAsync<T>(object body, HttpGzgContentTypes content)
+    public async Task<HttpGzgResponse<T>> PutWithResultAsync<T>(object body, HttpGzgContentTypes content , bool parseResultIfError = false)
     {
-        return await SendAndParseAsync<T>(HttpGzgMethods.PUT, body, content);
+        return await SendAndParseAsync<T>(HttpGzgMethods.PUT, body, content, parseResultIfError);
     }
     public async Task<HttpGzgResponseStream> PutWithStreamResultAsync(object body, HttpGzgContentTypes content)
     {
@@ -232,9 +232,9 @@ public class HttpGzgClient : IDisposable
         using var response = this.Send(HttpGzgMethods.PATCH, body, content);
         return GetHttpGzgResponse(response);
     }
-    public HttpGzgResponse<T> PatchtWithResult<T>(object body, HttpGzgContentTypes content)
+    public HttpGzgResponse<T> PatchtWithResult<T>(object body, HttpGzgContentTypes content , bool parseResultIfError = false)
     {
-        return SendAndParse<T>(HttpGzgMethods.PATCH, body, content);
+        return SendAndParse<T>(HttpGzgMethods.PATCH, body, content , parseResultIfError);
     }
     public HttpGzgResponseStream PatchWithStreamResult(object body, HttpGzgContentTypes content)
     {
@@ -245,9 +245,9 @@ public class HttpGzgClient : IDisposable
         using var response = await this.SendAsync(HttpGzgMethods.PATCH, body, content);
         return await GetHttpGzgResponseAsync(response);
     }
-    public async Task<HttpGzgResponse<T>> PatchWithResultAsync<T>(object body, HttpGzgContentTypes content)
+    public async Task<HttpGzgResponse<T>> PatchWithResultAsync<T>(object body, HttpGzgContentTypes content , bool parseResultIfError = false)
     {
-        return await SendAndParseAsync<T>(HttpGzgMethods.PATCH, body, content);
+        return await SendAndParseAsync<T>(HttpGzgMethods.PATCH, body, content, parseResultIfError);
     }
     public async Task<HttpGzgResponseStream> PatchWithStreamResultAsync(object body, HttpGzgContentTypes content)
     {
