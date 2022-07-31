@@ -1,7 +1,7 @@
 ﻿
 using System.ComponentModel;
 
-namespace GzgHttp.Extensions;
+namespace GzgHttp.Enums;
 
 public enum HttpGzgContentTypes
 {

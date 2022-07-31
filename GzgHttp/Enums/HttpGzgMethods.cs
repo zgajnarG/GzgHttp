@@ -1,4 +1,4 @@
-﻿namespace GzgHttp.Extensions;
+﻿namespace GzgHttp.Enums;
 
 public enum HttpGzgMethods
 {
