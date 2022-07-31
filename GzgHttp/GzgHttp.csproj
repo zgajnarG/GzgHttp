@@ -5,7 +5,23 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	<Company>Guillaume Zgajnar</Company>
+	<PackageReadmeFile>readme.md</PackageReadmeFile>
+	<RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
+	<Version>1.0.1</Version>
+	<PackageLicenseFile>Licence.txt</PackageLicenseFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\Licence.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\readme.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1">
